@@ -32,19 +32,20 @@ class PennTreebank(DenseDesignMatrix):
         Whether to shuffle the samples or go through the dataset
         linearly
     """
-    def __init__(self, which_set, context_len, shuffle=True):
+    def __init__(self, which_set, chars_or_words, context_len, shuffle=True):
         """
         Loads the data and turns it into n-grams
         """
+        assert( chars_or_words=='chars' or chars_or_words=='words' )
         path = ("${PYLEARN2_DATA_PATH}/PennTreebankCorpus/" +
                 "penntree_char_and_word.npz")
         npz_data = serial.load(path)
         if which_set == 'train':
-            self._raw_data = npz_data['train_words']
+            self._raw_data = npz_data['train_'+chars_or_words]
         elif which_set == 'valid':
-            self._raw_data = npz_data['valid_words']
+            self._raw_data = npz_data['valid_'+chars_or_words]
         elif which_set == 'test':
-            self._raw_data = npz_data['test_words']
+            self._raw_data = npz_data['test_'+chars_or_words]
         else:
             raise ValueError("Dataset must be one of 'train', 'valid' "
                              "or 'test'")
@@ -56,10 +57,14 @@ class PennTreebank(DenseDesignMatrix):
                                 strides=(self._raw_data.itemsize,
                                          self._raw_data.itemsize))
 
+        if chars_or_words=='chars':
+          num_labels = 50
+        else:
+          num_labels = 10000
         super(PennTreebank, self).__init__(
             X=self._data[:, :-1],
             y=self._data[:, -1:],
-            X_labels=10000, y_labels=10000
+            X_labels=num_labels, y_labels=num_labels
         )
 
         if shuffle:
