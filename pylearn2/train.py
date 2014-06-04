@@ -195,31 +195,46 @@ already been reported."""
                     data_specs=(NullSpace(), ''),
                     dataset=self.model.monitor._datasets[0])
             self.run_callbacks_and_monitoring()
+            import time
             while True:
                 if self.exceeded_time_budget(t0, time_budget):
                     break
 
                 with log_timing(log, None, level=logging.DEBUG,
                                 callbacks=[self.total_seconds.set_value]):
+                    print "train"
+                    t = time.time()
                     with log_timing(
                             log, None, final_msg='Time this epoch:',
                             callbacks=[self.training_seconds.set_value]):
                         rval = self.algorithm.train(dataset=self.dataset)
+                    print "train done", time.time()-t
                     if rval is not None:
                         raise ValueError("TrainingAlgorithm.train should not "
                                          "return anything. Use "
                                          "TrainingAlgorithm.continue_learning "
                                          "to control whether learning "
                                          "continues.")
+                    print "report_epoch"; t=time.time()
                     self.model.monitor.report_epoch()
+                    print "rep epoch done", time.time()-t
+                    print "callbacks"
+                    t = time.time()
                     extension_continue = self.run_callbacks_and_monitoring()
+                    print "callback done2", time.time()-t
                     if self.save_freq > 0 and \
                        self.model.monitor._epochs_seen % self.save_freq == 0:
+                        print "saving"
+                        t = time.time()
                         self.save()
+                        print "saving done", time.time()-t
+                print "cont learning"
+                t = time.time()
                 continue_learning = (
                     self.algorithm.continue_learning(self.model) and
                     extension_continue
                 )
+                print "cont learning done", time.time()-t
                 assert continue_learning in [True, False, 0, 1]
                 if not continue_learning:
                     break
@@ -239,11 +254,19 @@ already been reported."""
             If `False`, signals that at least one train
             extension wants to stop learning.
         """
+        import time
+        print "running monitor"
+        t = time.time()
+        print self.model.monitor
         self.model.monitor()
+        print "monitor done", time.time()-t
         continue_learning = True
         for extension in self.extensions:
             try:
+                print "on monitor for",extension
+                t = time.time()
                 extension.on_monitor(self.model, self.dataset, self.algorithm)
+                print "on monitor done", time.time()-t
             except TypeError:
                 logging.warning('Failure during callback ' + str(extension))
                 raise
