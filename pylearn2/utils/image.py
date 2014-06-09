@@ -8,12 +8,14 @@ import numpy as np
 plt = None
 axes = None
 import warnings
-try:
-    import matplotlib.pyplot as plt
-    import matplotlib.axes
-except (RuntimeError, ImportError), matplotlib_exception:
-    warnings.warn("Unable to import matplotlib. Some features unavailable. "
-            "Original exception: " + str(matplotlib_exception))
+
+def import_matplotlib():
+    try:
+        import matplotlib.pyplot as plt
+        import matplotlib.axes
+    except (RuntimeError, ImportError), matplotlib_exception:
+        warnings.warn("Unable to import matplotlib. Some features unavailable. "
+                "Original exception: " + str(matplotlib_exception))
 import os
 
 try:
@@ -58,7 +60,8 @@ def imview(*args, **kwargs):
     All other arguments and keyword arguments are passed
     on to `imshow`.`
     """
-    if 'figure' not in kwargs:
+    import_matplotlib()
+    if 'figure' not in kwargs:        
         f = plt.figure()
     else:
         f = kwargs['figure']
@@ -88,6 +91,7 @@ def imview_async(*args, **kwargs):
         raise ValueError("passing a figure argument not supported")
 
     def fork_image_viewer():
+        import_matplotlib()
         f = plt.figure()
         kwargs['figure'] = f
         imview(*args, **kwargs)
