@@ -4354,13 +4354,13 @@ class CompositeLayer(Layer):
             self.inputs_to_layers = OrderedDict()
             for key in sorted(inputs_to_layers):
                 assert isinstance(key, py_integer_types)
-                assert 0 <= key < self.num_layers
+                #assert 0 <= key < self.num_layers # Why should input number be less than number of layers? Number of layers in previous layer should be the releveant number
                 value = inputs_to_layers[key]
                 assert is_iterable(value)
                 assert all(isinstance(v, py_integer_types) for v in value)
                 # Check 'not value' to support case of empty list
-                assert not value or all(0 <= v < self.num_layers
-                                        for v in value)
+                #assert not value or all(0 <= v < self.num_layers
+                #                        for v in value) # Why should v be less than num_layers? It is the layers above num_layers that should be relevant
                 self.inputs_to_layers[key] = sorted(value)
         super(CompositeLayer, self).__init__()
         self.__dict__.update(locals())
